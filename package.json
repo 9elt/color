@@ -1,0 +1,31 @@
+{
+  "name": "color",
+  "type": "commonjs",
+  "version": "0.1.0",
+  "description": "Colors",
+  "main": "./dist/cjs/index.js",
+  "types": "./dist/cjs/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.js"
+    }
+  },
+  "scripts": {
+    "dev": "tsc -p tsconfig.esm.json --watch",
+    "build:cjs": "tsc -p tsconfig.cjs.json",
+    "build:esm": "tsc -p tsconfig.esm.json && echo '{\"type\": \"module\"}'> ./dist/esm/package.json",
+    "build": "npm run build:cjs && npm run build:esm && npm run test",
+    "test": "exit 1; node --experimental-vm-modules node_modules/jest/bin/jest.js"
+  },
+  "author": "Lorenzo Cicuttin",
+  "license": "MIT",
+  "keywords": [],
+  "readme": "./README.md",
+  "homepage": "https://github.com/9elt/color#readme",
+  "repository": "github:9elt/color",
+  "devDependencies": {
+    "jest": "^29.5.0",
+    "jest-cli": "^29.5.0"
+  }
+}
