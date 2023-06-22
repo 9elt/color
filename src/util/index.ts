@@ -80,6 +80,7 @@ export const hslToHSL = (color: string): HSLAbytes => {
 export const HSLtoHsl = ([h, s, l]: HSLAbytes) => `hsl(${h} ${s}% ${l}%)`;
 export const HSLtoHsla = ([h, s, l, a]: HSLAbytes) => `hsla(${h} ${s}% ${l}% / ${a.toFixed(2)})`;
 
+
 // rbg parsing
 
 export const rgbToRGB = (color: string): RGBAbytes => {
@@ -121,7 +122,6 @@ export const rotate_ = (angle: Angle, deg: number): Angle => {
 }
 
 
-
 // rgb byte filters
 
 export const contrast = (byte: number, value: number) =>
@@ -134,41 +134,24 @@ export const solid = (byte: number, bg: number, alpha: number) =>
   byte_((byte * alpha) + (bg * (1 - alpha)));
 
 
-
 // luma
 
-export const luma = ([r, g, b, a]: RGBAbytes) => {
+export const luma = ([r, g, b, a]: RGBAbytes, YUV = false) => {
   return (
-    0.2126 * r
-    + 0.7152 * g
-    + 0.0722 * b
+    (YUV ? 0.299 : 0.2126) * r
+    + (YUV ? 0.587 : 0.7152) * g
+    + (YUV ? 0.114 : 0.0722) * b
   ) / 255;
 }
 
 export const lumaAlpha = (
-  [r, g, b, a]: RGBAbytes, [r_, g_, b_]: number[] = [255, 255, 255]
+  [r, g, b, a]: RGBAbytes,
+  [r_, g_, b_]: number[] = [255, 255, 255],
+  YUV = false
 ) => {
   return (
-    0.2126 * solid(r, r_, a)
-    + 0.7152 * solid(g, g_, a)
-    + 0.0722 * solid(b, b_, a)
-  ) / 255;
-}
-
-export const lumaYUV = ([r, g, b, a]: RGBAbytes) => {
-  return (
-    0.299 * r
-    + 0.587 * g
-    + 0.114 * b
-  ) / 255;
-}
-
-export const lumaYUVAlpha = (
-  [r, g, b, a]: RGBAbytes, [r_, g_, b_]: number[] = [255, 255, 255]
-) => {
-  return (
-    0.299 * solid(r, r_, a)
-    + 0.587 * solid(g, g_, a)
-    + 0.114 * solid(b, b_, a)
+    (YUV ? 0.299 : 0.2126) * solid(r, r_, a)
+    + (YUV ? 0.587 : 0.7152) * solid(g, g_, a)
+    + (YUV ? 0.114 : 0.0722) * solid(b, b_, a)
   ) / 255;
 }

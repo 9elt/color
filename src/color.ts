@@ -7,7 +7,7 @@ import {
   rgbToRGB, hexToRGB, hslToHSL,
   RGBToHex, RGBToHexa, RGBToRgb, RGBToRgba,
   HSLtoHsl, HSLtoHsla,
-  lumaAlpha, luma, lumaYUVAlpha, lumaYUV,
+  lumaAlpha, luma,
 } from "./util";
 
 import type {
@@ -158,8 +158,8 @@ export class Color {
   get lumaYUV() {
     if (!this.#lumaYUV) {
       this.#lumaYUV = this.hasAlpha
-        ? lumaYUVAlpha(this.#RGBa.bytes, this.#backgound?.bytes)
-        : lumaYUV(this.#RGBa.bytes)
+        ? lumaAlpha(this.#RGBa.bytes, this.#backgound?.bytes, true)
+        : luma(this.#RGBa.bytes, true)
     }
 
     return this.#lumaYUV;
