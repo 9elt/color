@@ -115,8 +115,8 @@ export class Color {
     }
   }
 
-  get RGBAbytes(): RGBAbytes { return this.#RGBa.bytes; }
-  get HSLAbytes(): HSLAbytes { return this.#HSLa.bytes; }
+  get bytes(): RGBAbytes { return this.#RGBa.bytes; }
+  get HSLbytes(): HSLAbytes { return this.#HSLa.bytes; }
 
   get alpha() { return this.#preferHSLa.alpha; }
   get hasAlpha() { return this.#preferHSLa.hasAlpha; }
@@ -144,7 +144,7 @@ export class Color {
   get luma() {
     if (!this.#luma) {
       this.#luma = this.hasAlpha
-        ? lumaAlpha(this.#RGBa.bytes, this.#backgound?.RGBAbytes)
+        ? lumaAlpha(this.#RGBa.bytes, this.#backgound?.bytes)
         : luma(this.#RGBa.bytes)
     }
 
@@ -154,7 +154,7 @@ export class Color {
   get lumaYUV() {
     if (!this.#lumaYUV) {
       this.#lumaYUV = this.hasAlpha
-        ? lumaYUVAlpha(this.#RGBa.bytes, this.#backgound?.RGBAbytes)
+        ? lumaYUVAlpha(this.#RGBa.bytes, this.#backgound?.bytes)
         : lumaYUV(this.#RGBa.bytes)
     }
 
@@ -207,7 +207,7 @@ export class Color {
 
   solid() {
     if (this.hasAlpha) {
-      this.#RGBa.solid(this.#backgound?.RGBAbytes);
+      this.#RGBa.solid(this.#backgound?.bytes);
       this.#outdateHSLa();
       this.#clearLumaCache();
     }
