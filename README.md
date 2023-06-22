@@ -35,7 +35,7 @@ color.hsl;  // hsl(33 100% 63%)
 color.hsla; // hsl(33 100% 63% / 0.50)
 
 color.bytes;    // [ 255, 170, 68, 128 ]
-color.HSLbytes; // [ 33, 100, 63, 0.50196]
+color.HSLbytes; // [ 33, 100, 63, 0.50196 ]
 
 color.isDark;   // true
 color.luma;     // 0.2126
