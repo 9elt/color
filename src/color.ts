@@ -70,7 +70,7 @@ export class Color {
   }
 
   get #RGBa() {
-    if (this.#outdated === 0 || !this.#_RGBa) {
+    if (this.#outdated === 0) {
       this.#_RGBa = RGBa.fromHSLa(this.#_HSLa);
       this.#outdated = -1;
     }
@@ -78,7 +78,7 @@ export class Color {
   }
 
   get #HSLa() {
-    if (this.#outdated === 1 || !this.#_HSLa) {
+    if (this.#outdated === 1) {
       this.#_HSLa = HSLa.fromRGBa(this.#_RGBa);
       this.#outdated = -1;
     }
@@ -100,16 +100,20 @@ export class Color {
   }
 
   #outdateRGBa(preferred?: boolean) {
-    if (preferred && this.#outdated !== 1) {
-      this.#outdated = 0;
+    if (preferred) {
+      if (this.#outdated !== 1) {
+        this.#outdated = 0;
+      }
     } else {
       this.#outdated = 0;
     }
   }
 
   #outdateHSLa(preferred?: boolean) {
-    if (preferred && this.#outdated !== 0) {
-      this.#outdated = 1;
+    if (preferred) {
+      if (this.#outdated !== 0) {
+        this.#outdated = 1;
+      }
     } else {
       this.#outdated = 1;
     }
