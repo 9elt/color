@@ -10,13 +10,6 @@ export type FilterOptions = {
   solid: true;
 }
 
-type Enm<N extends number, Acc extends number[] = []> = 
-Acc['length'] extends N
-  ? Acc[number]
-  : Enm<N, [...Acc, Acc['length']]>
-
-type IntRange<F extends number, T extends number> = Exclude<Enm<T>, Enm<F>>
-
 export type Byte = number
 export type Percentage = number
 export type Angle = number

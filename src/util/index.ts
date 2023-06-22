@@ -18,7 +18,7 @@ export function isCSSColor(color: string) {
 }
 
 export function rotate(angle: number, by: number) {
-  return angle + by > 360
+  return angle + by >= 360
     ? angle + by - 360
     : angle + by
 }
@@ -28,25 +28,36 @@ export function normalToByte(normal: number) {
 }
 
 export function unit(normal: number) {
-  return limit(normal, 0, 1);
+  return limit(normal, 1);
 }
+
 
 export function byte(byte: number) {
-  return limit(byte, 0, 255) as Byte;
+  return limit(byte, 255);
 }
 
-function angle(angle: number) {
-  return limit(angle, 0, 360);
+export function byte_(byte: number) {
+  return limit(Math.round(byte), 255);
+}
+
+export function angle(angle: number) {
+  return limit(angle, 360);
+}
+
+export function angle_(angle: number) {
+  return limit(Math.round(angle), 360);
 }
 
 export function percentage(pct: number) {
-  return limit(pct, 0, 100);
+  return limit(pct, 100);
 }
 
-export function limit(v: number, min: number, max: number) {
-  if (v > max) { return max }
-  if (v < min) { return min }
-  return v;
+export function percentage_(pct: number) {
+  return limit(Math.round(pct), 100);
+}
+
+export function limit(v: number, max: number) {
+  return v > max ? max : v < 0 ? 0 : v;
 }
 
 export function fullHex(hex: string) {
