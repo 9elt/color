@@ -6,12 +6,22 @@ Colors in javascript.
 
 ```javascript
 import Color from "color";
+```
 
-let color = Color.from("#fa4");
+### from
 
+supports *hex*, *rgb*, *hsl*, all *css colors*
+
+```javascript
+let hex = Color.from("#fa4");
+let rgb = Color.from("rgb(255,170,68)");
+let hsl = Color.from("hsl(33 100% 63%)");
+let css = Color.from("goldenrod");
 ```
 
 ```javascript
+
+let color = Color.from("#fa4b");
 
 color.opacity(0.5);
 
@@ -33,35 +43,41 @@ color.lumaYUV;   // 0.299
 
 ```
 
+### background
+
 ```javascript
 color.background("#fff").solid(); 
 color.hex; //#ffd4a1
 ```
 
-#### clone
+### clone
 
 ```javascript
 let copy = color.clone();
 let otherCopy = Color.from(color);
 ```
 
-#### fiter
+### fiters
 
 ```javascript
 copy
+  .opacity(1)
   .contrast(1.7)
   .rotateHue(180)
   .saturate(1.5)
-  .brightness(1.5);
+  .brightness(1.5)
+  .invert();
 ```
 
-#### or
+or
 
 ```javascript
 otherCopy.filter({
+  opacity: 1,
   contrast: 1.7,
   rotateHue: 180,
   saturate: 1.5,
-  brightness: 1.5
+  brightness: 1.5,
+  invert: true,
 })
 ```

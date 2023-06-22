@@ -44,7 +44,7 @@ export class HSLa implements BaseColor {
   }
 
   opacity(value: number) {
-    this.#bytes[3] = unit(this.a * value);
+    this.#bytes[3] = unit(value);
   }
 
   rotateHue(deg: number) {

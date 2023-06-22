@@ -51,7 +51,7 @@ export class RGBa implements BaseColor {
   }
 
   opacity(value: number) {
-    this.#bytes[3] = byte_(this.a * value);
+    this.#bytes[3] = byte_(value * 255);
   }
 
   solid([r_, g_, b_]: number[] = [255, 255, 255]) {
