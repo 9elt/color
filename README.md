@@ -19,11 +19,11 @@ let hsl = Color.from("hsl(33 100% 63%)");
 let css = Color.from("goldenrod");
 ```
 
+### conversions and more
+
 ```javascript
 
-let color = Color.from("rgb(255,170,68,0.8)");
-
-color.opacity(0.5);
+let color = Color.from("rgb(255,170,68,0.5)");
 
 color.hex;  // #ffaa44
 color.hexa; // #ffaa4480
@@ -54,7 +54,7 @@ let same = Color.from(color);
 
 ```javascript
 copy
-  .opacity(1)
+  .opacity(0.7)
   .contrast(1.7)
   .rotateHue(180)
   .saturate(1.5)
@@ -66,7 +66,7 @@ or
 
 ```javascript
 same.filter({
-  opacity: 1,
+  opacity: 0.7,
   contrast: 1.7,
   rotateHue: 180,
   saturate: 1.5,
@@ -77,7 +77,7 @@ same.filter({
 
 ### background
 
-convert a transparent color into a solid one, maintaining background influence (default background is *white*)
+convert a transparent color into a solid one, maintaining background influence
 
 ```javascript
 Color.from("#ffaa4480").background("#fff").solid(); 
