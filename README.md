@@ -10,7 +10,7 @@ import Color from "color";
 
 ### from
 
-supports *hex*, *rgb*, *hsl*, all *css colors*
+supports *hex*, *rgb*, *hsl* and all *css colors*
 
 ```javascript
 let hex = Color.from("#fa4");
@@ -21,7 +21,7 @@ let css = Color.from("goldenrod");
 
 ```javascript
 
-let color = Color.from("#fa4b");
+let color = Color.from("rgb(255,170,68,0.8)");
 
 color.opacity(0.5);
 
@@ -43,21 +43,14 @@ color.lumaYUV;   // 0.299
 
 ```
 
-### background
-
-```javascript
-color.background("#fff").solid(); 
-color.hex; //#ffd4a1
-```
-
 ### clone
 
 ```javascript
 let copy = color.clone();
-let otherCopy = Color.from(color);
+let same = Color.from(color);
 ```
 
-### fiters
+### fiter methods
 
 ```javascript
 copy
@@ -72,7 +65,7 @@ copy
 or
 
 ```javascript
-otherCopy.filter({
+same.filter({
   opacity: 1,
   contrast: 1.7,
   rotateHue: 180,
@@ -80,4 +73,13 @@ otherCopy.filter({
   brightness: 1.5,
   invert: true,
 })
+```
+
+### background
+
+convert a transparent color into a solid one, maintaining background influence (default background is *white*)
+
+```javascript
+Color.from("#ffaa4480").background("#fff").solid(); 
+color.hex; //#ffd4a1
 ```
