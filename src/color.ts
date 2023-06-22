@@ -1,53 +1,45 @@
-import { CSSColors, CSSColor } from "./util/css-colors";
+import { RGBa } from "./rgb";
+import { HSLa } from "./hsl";
 
 import {
-  isHex,
-  isRgb,
-  isCSSColor,
-  percentage,
-  isHsl,
-  rotate,
-  toHex,
-  fullHex,
-  normalToByte,
-  unit,
-  byte,
-  RGBtoHSL,
-  HSLtoRGB,
-  contrast,
-  brightness,
-  solid
+  isCSSColor, CSSColor, CSSColors,
+  isHex, isRgb, isHsl,
+  rgbToRGB, hexToRGB, hslToHSL,
+  RGBToHex, RGBToHexa, RGBToRgb, RGBToRgba,
+  HSLtoHsl, HSLtoHsla,
+  lumaAlpha, luma, lumaYUVAlpha, lumaYUV,
 } from "./util";
 
-import type { 
-  FilterMethod,
-  FilterOptions,
-  Byte,
-  BytesRGB,
-  BytesRGBA,
-  BytesHSL,
-  BytesHSLA
+import type {
+  RGBAbytes, HSLAbytes,
+  FilterMethod, FilterOptions,
 } from "./types";
 
+
+
 export class Color {
-  #r: Byte;
-  #g: Byte;
-  #b: Byte;
-  #a: Byte;
+  #_RGBa: RGBa;
+  #_HSLa: HSLa;
+  #outdated: number; // -1 none 0 #_RGBa 1 #_HSLa
 
-  #alpha: number;
   #backgound?: Color;
-
-  #hsl?: number[];
   #luma?: number;
   #lumaYUV?: number;
 
-  constructor(r: Byte, g: Byte, b: Byte, a?: Byte) {
-    this.#r = r;
-    this.#g = g;
-    this.#b = b;
-    this.#a = a ?? 255;
-    this.#alpha = this.#a / 255;
+  constructor() { }
+
+  static #fromRGBa(rgba: RGBAbytes) {
+    let color = new Color();
+    color.#_RGBa = new RGBa(rgba);
+    color.#outdated = 1;
+    return color;
+  }
+
+  static #fromHSLa(hsla: HSLAbytes) {
+    let color = new Color();
+    color.#_HSLa = new HSLa(hsla);
+    color.#outdated = 0;
+    return color;
   }
 
   static from(color: string | Color) {
@@ -56,172 +48,104 @@ export class Color {
     if (isHex(color)) { return this.fromHex(color) }
     if (isRgb(color)) { return this.fromRgb(color) }
     if (isHsl(color)) { return this.fromHsl(color) }
-    if (isCSSColor(color)) { return this.fromCSSColor(color as CSSColor) }
+    if (isCSSColor(color)) { return this.fromCSSColor(color as CSSColors) }
 
     throw new Error("color not supported " + color);
   }
 
   static fromRgb(color: string) {
-    let rgb = color.split("(")[1]?.split(")")[0]?.split(",");
-
-    if (!rgb || rgb.length < 3) {
-      throw new Error("invalid rgb color " + color);
-    }
-
-    return new Color(
-      parseInt(rgb[0]),
-      parseInt(rgb[1]),
-      parseInt(rgb[2]),
-      normalToByte(parseFloat(rgb[3])) || 255,
-    );
+    return this.#fromRGBa(rgbToRGB(color));
   }
 
   static fromHex(color: string) {
-    let hex = fullHex(color);
-
-    return new Color(
-      parseInt(hex.substring(1, 3), 16),
-      parseInt(hex.substring(3, 5), 16),
-      parseInt(hex.substring(5, 7), 16),
-      parseInt(hex.substring(7, 9), 16) || 255,
-    );
+    return this.#fromRGBa(hexToRGB(color));
   }
 
   static fromHsl(color: string) {
-    let [clr, alpha] = color.split("(")[1]?.split(")")[0]?.split("/");
+    return this.#fromHSLa(hslToHSL(color));
+  }
 
-    if (!clr) {
-      throw new Error("invalid hsl color " + color);
+  static fromCSSColor(color: CSSColors) {
+    return this.#fromRGBa(CSSColor(color));
+  }
+
+  get #RGBa() {
+    if (this.#outdated === 0 || !this.#_RGBa) {
+      this.#_RGBa = RGBa.fromHSLa(this.#_HSLa);
+      this.#outdated = -1;
     }
+    return this.#_RGBa;
+  }
 
-    let data = clr.split(" ");
-
-    if (data.length < 3) {
-      throw new Error("invalid hsl color " + color);
+  get #HSLa() {
+    if (this.#outdated === 1 || !this.#_HSLa) {
+      this.#_HSLa = HSLa.fromRGBa(this.#_RGBa);
+      this.#outdated = -1;
     }
-
-    let hsl = [
-      parseInt(data[0].replace("%", "")),
-      parseInt(data[1].replace("%", "")),
-      parseInt(data[2].replace("%", "")),
-    ];
-
-    let [r, g, b] = HSLtoRGB(hsl);
-
-    let a = parseFloat(alpha?.replace("%", "")) || 1;
-    a = byte((a > 1 ? a * 2.55 : a * 255));
-
-    return new Color(r, g, b, a).#setHsl(hsl);
+    return this.#_HSLa;
   }
 
-  static fromCSSColor(color: CSSColor) {
-    let [r, g, b] = CSSColors[color];
-    return new Color(r, g, b);
-  }
-
-  /** the rgb bytes */
-  get bytesRGB(): BytesRGB {
-    return [this.#r, this.#g, this.#b];
-  }
-
-  /** the rgba bytes */
-  get bytesRGBA(): BytesRGBA {
-    return [this.#r, this.#g, this.#b, this.#a];
-  }
-
-  /** the hsl ~bytes */
-  get bytesHSL(): BytesHSL {
-    if (!this.#hsl) {
-      this.#hsl = RGBtoHSL(this.bytesRGB);
+  get #preferRGBa() {
+    if (this.#outdated !== 0) {
+      return this.#_RGBa;
     }
-    return this.#hsl as BytesHSL;
+    return this.#_HSLa;
   }
 
-  /** the hsla ~bytes */
-  get bytesHSLA(): BytesHSLA {
-    if (!this.#hsl) {
-      this.#hsl = RGBtoHSL(this.bytesRGB);
+  get #preferHSLa() {
+    if (this.#outdated !== 1) {
+      return this.#_HSLa;
     }
-    return this.#hsl.concat(this.#alpha) as BytesHSLA;
+    return this.#_RGBa;
   }
 
-  get alpha() {
-    return this.#alpha;
-  }
-
-  get red() {
-    return this.#r;
-  }
-
-  get green() {
-    return this.#g;
-  }
-
-  get blue() {
-    return this.#b;
-  }
-
-  /** the hex string */
-  get hex() {
-    return "#"
-      + toHex(this.#r)
-      + toHex(this.#g)
-      + toHex(this.#b);
-  }
-
-  /** the hex alpha string */
-  get hexa() {
-    return "#"
-      + toHex(this.#r)
-      + toHex(this.#g)
-      + toHex(this.#b)
-      + toHex(this.#a);
-  }
-
-  /** the rgb string */
-  get rgb() {
-    return `rgb(${this.#r},${this.#g},${this.#b})`;
-  }
-
-  /** the rgb alpha string */
-  get rgba() {
-    return `rgba(${this.#r},${this.#g},${this.#b},${this.#alpha})`;
-  }
-
-  /** the hsl string */
-  get hsl() {
-    if (!this.#hsl) {
-      this.#hsl = RGBtoHSL(this.bytesRGB);
+  #outdateRGBa(preferred?: boolean) {
+    if (preferred && this.#outdated !== 1) {
+      this.#outdated = 0;
+    } else {
+      this.#outdated = 0;
     }
-
-    return `hsl(${this.#hsl[0]} ${this.#hsl[1]}% ${this.#hsl[2]}%)`
   }
 
-  /** the hsl alpha string */
-  get hsla() {
-    if (!this.#hsl) {
-      this.#hsl = RGBtoHSL(this.bytesRGB);
+  #outdateHSLa(preferred?: boolean) {
+    if (preferred && this.#outdated !== 0) {
+      this.#outdated = 1;
+    } else {
+      this.#outdated = 1;
     }
-
-    return `hsla(${this.#hsl[0]} ${this.#hsl[1]}% ${this.#hsl[2]}% / ${this.#alpha})`
   }
+
+  get RGBAbytes(): RGBAbytes { return this.#RGBa.bytes; }
+  get HSLAbytes(): HSLAbytes { return this.#HSLa.bytes; }
+
+  get alpha() { return this.#preferHSLa.alpha; }
+  get hasAlpha() { return this.#preferHSLa.hasAlpha; }
+
+  get isDark() { return this.lumaYUV < 0.5; }
+  get isLight() { return this.lumaYUV >= 0.5; }
+
+  get red() { return this.#RGBa.r; }
+  get green() { return this.#RGBa.g; }
+  get blue() { return this.#RGBa.b; }
+
+  get hue() { return this.#HSLa.h; }
+  get saturation() { return this.#HSLa.s; }
+  get lightness() { return this.#HSLa.l; }
+
+  get hex() { return RGBToHex(this.#RGBa.bytes); }
+  get hexa() { return RGBToHexa(this.#RGBa.bytes); }
+
+  get rgb() { return RGBToRgb(this.#RGBa.bytes); }
+  get rgba() { return RGBToRgba(this.#RGBa.bytes); }
+
+  get hsl() { return HSLtoHsl(this.#HSLa.bytes); }
+  get hsla() { return HSLtoHsla(this.#HSLa.bytes); }
 
   get luma() {
     if (!this.#luma) {
-      if (this.hasAlpha) {
-        let [r, g, b] = this.#backgound?.bytesRGB ?? [255, 255, 255];
-        this.#luma = (
-          0.2126 * solid(this.#r, r, this.#alpha)
-          + 0.7152 * solid(this.#g, g, this.#alpha)
-          + 0.0722 * solid(this.#b, b, this.#alpha)
-        ) / 255;
-      } else {
-        this.#luma = (
-          0.2126 * this.#r
-          + 0.7152 * this.#g
-          + 0.0722 * this.#b
-        ) / 255;
-      }
+      this.#luma = this.hasAlpha
+        ? lumaAlpha(this.#RGBa.bytes, this.#backgound?.RGBAbytes)
+        : luma(this.#RGBa.bytes)
     }
 
     return this.#luma;
@@ -229,157 +153,112 @@ export class Color {
 
   get lumaYUV() {
     if (!this.#lumaYUV) {
-      if (this.hasAlpha) {
-        let [r, g, b] = this.#backgound?.bytesRGB ?? [255, 255, 255];
-        this.#lumaYUV = (
-          0.299 * solid(this.#r, r, this.#alpha)
-          + 0.587 * solid(this.#g, g, this.#alpha)
-          + 0.114 * solid(this.#b, b, this.#alpha)
-        ) / 255;
-      } else {
-        this.#lumaYUV = (
-          0.299 * this.#r
-          + 0.587 * this.#g
-          + 0.114 * this.#b
-        ) / 255;
-      }
+      this.#lumaYUV = this.hasAlpha
+        ? lumaYUVAlpha(this.#RGBa.bytes, this.#backgound?.RGBAbytes)
+        : lumaYUV(this.#RGBa.bytes)
     }
 
     return this.#lumaYUV;
   }
 
-  get hasAlpha() {
-    return this.#a !== 255;
-  }
-
-  get isDark() {
-    return this.lumaYUV < 0.5;
-  }
-
-  get isLight() {
-    return this.lumaYUV >= 0.5;
-  }
-
-  background(color?: Color) {
-    this.#backgound = color;
+  background(color: Color | string) {
+    this.#backgound = color instanceof Color
+      ? color : Color.from(color);
     return this;
   }
 
-  backgroundFrom(color: string) {
-    this.#backgound = Color.from(color);
-    return this;
-  }
-
-  filter(filters: Partial<FilterOptions>, clone?: boolean) {
-    let target = clone ? this.clone() : this;
-
+  filter(filters: Partial<FilterOptions>) {
     let method: FilterMethod;
+
     for (method in filters) {
       if (
         method in this &&
-        typeof target[method] === "function"
+        typeof this[method] === "function"
       ) {
         typeof filters[method] === "boolean"
-          ? (target[method] as any)()
-          : (target[method] as any)(filters[method]);
+          ? (this[method] as any)()
+          : (this[method] as any)(filters[method]);
       }
     }
 
-    return target;
+    return this;
   }
 
   contrast(value: number) {
-    this.#r = contrast(this.#r, value);
-    this.#g = contrast(this.#g, value);
-    this.#b = contrast(this.#b, value);
-    this.#clearChache();
-    this.#hsl = undefined;
+    this.#RGBa.contrast(value);
+    this.#outdateHSLa();
+    this.#clearLumaCache();
     return this;
   }
 
   brightness(value: number) {
-    this.#r = brightness(this.#r, value);
-    this.#g = brightness(this.#g, value);
-    this.#b = brightness(this.#b, value);
-    this.#clearChache();
-    this.#hsl = undefined;
+    this.#RGBa.brightness(value);
+    this.#outdateHSLa();
+    this.#clearLumaCache();
     return this;
   }
 
   opacity(value: number) {
-    this.#alpha = unit(value);
-    this.#a = byte(Math.round(this.#alpha * 255));
-    this.#clearChache();
+    this.#preferRGBa?.opacity(value);
+    this.#outdateHSLa(true);
+    this.#clearLumaCache();
     return this;
   }
 
   solid() {
     if (this.hasAlpha) {
-      let [r, g, b] = this.#backgound?.bytesRGB ?? [255, 255, 255];
-      this.#r = solid(this.#r, r, this.#alpha);
-      this.#g = solid(this.#g, g, this.#alpha);
-      this.#b = solid(this.#b, b, this.#alpha);
-      this.#a = 255;
-      this.#alpha = 1;
-      this.#clearChache();
-      this.#hsl = undefined;
+      this.#RGBa.solid(this.#backgound?.RGBAbytes);
+      this.#outdateHSLa();
+      this.#clearLumaCache();
     }
     return this;
   }
 
-  hueRotate(deg: number) {
-    let [h, s, l] = this.bytesHSL;
-    h = rotate(h, deg);
-    this.#hsl = [h,s,l];
-    let [r, g, b] = HSLtoRGB([h, s, l]);
-    this.#r = r;
-    this.#g = g;
-    this.#b = b;
-    this.#clearChache();
+  rotateHue(deg: number) {
+    this.#HSLa.rotateHue(deg);
+    this.#outdateRGBa();
+    this.#clearLumaCache();
     return this;
   }
 
-  saturation(value: number) {
-    let [h, s, l] = this.bytesHSL;
-    s = percentage(s * value);
-    this.#hsl = [h,s,l];
-    let [r, g, b] = HSLtoRGB([h, s, l]);
-    this.#r = r;
-    this.#g = g;
-    this.#b = b;
-    this.#clearChache();
+  saturate(value: number) {
+    this.#HSLa.saturate(value);
+    this.#outdateRGBa();
+    this.#clearLumaCache();
     return this;
   }
 
   invert() {
-    this.#r = 255 - this.#r;
-    this.#g = 255 - this.#g;
-    this.#b = 255 - this.#b;
-    this.#clearChache();
-    this.#hsl = undefined;
+    this.#RGBa.invert();
+    this.#outdateHSLa();
+    this.#clearLumaCache();
+    return this;
+  }
+
+  invertHSL() {
+    this.#HSLa.invert();
+    this.#outdateRGBa();
+    this.#clearLumaCache();
     return this;
   }
 
   clone() {
-    return new Color(this.#r, this.#g, this.#b, this.#a).#loadCache(this);
+    const clone = new Color();
+
+    clone.#backgound = this.#backgound?.clone();
+
+    clone.#_HSLa = this.#_HSLa?.clone();
+    clone.#_RGBa = this.#_RGBa?.clone();
+
+    clone.#outdated = this.#outdated;
+    clone.#luma = this.#luma;
+    clone.#lumaYUV = this.#lumaYUV;
+
+    return clone;
   }
 
-  #setHsl(hsl: number[]) {
-    this.#hsl = hsl;
-    return this;
-  }
-
-  #loadCache(from: Color) {
-    this.#backgound = from.#backgound;
-    this.#luma = from.#luma;
-    this.#lumaYUV = from.#lumaYUV;
-    this.#hsl = from.#hsl;
-    return this;
-  }
-
-  #clearChache() {
+  #clearLumaCache() {
     this.#luma = undefined;
     this.#lumaYUV = undefined;
-    // this.#hsl = undefined;
   }
 }

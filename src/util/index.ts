@@ -1,128 +1,174 @@
-import { Byte } from "../types";
-import { CSSColors } from "./css-colors";
+import type { RGBAbytes, HSLAbytes, Percentage, Angle, Byte } from "../types";
 
-export function isHex(color: string) {
-  return color[0] === "#";
+export type { CSSColors } from "./css-colors";
+export { CSSColor, isCSSColor } from "./css-colors";
+
+export const isHex = (color: string) => color[0] === "#";
+export const isRgb = (color: string) => color.substring(0, 3) === "rgb";
+export const isHsl = (color: string) => color.substring(0, 3) === "hsl";
+
+
+// hex parsing
+
+export const hexToRGB = (hex: string): RGBAbytes => {
+  switch (hex.length) {
+    case 4: return shortHexToRGB(hex);
+    case 5: return shortHexToRGB(hex);
+    case 7: return fullHexToRGB(hex);
+    case 9: return fullHexToRGB(hex);
+    default: throw new Error("invalid hex color " + hex)
+  }
 }
 
-export function isRgb(color: string) {
-  return color.substring(0, 3) === "rgb";
+export const RGBToHex = ([r, g, b]: RGBAbytes) =>
+  "#" + toHex(r) + toHex(g) + toHex(b);
+
+export const RGBToHexa = ([r, g, b, a]: RGBAbytes) =>
+  "#" + toHex(r) + toHex(g) + toHex(b) + toHex(a);
+
+const toHex = (byte: number) => {
+  const hex = byte.toString(16);
+  return hex.length === 1 ? "0" + hex : hex;
 }
 
-export function isHsl(color: string) {
-  return color.substring(0, 3) === "hsl";
-}
+const hexToByte = (hex: string) => {
+  let int = parseInt(hex, 16)
+  return isNaN(int) ? 255 : int
+};
 
-export function isCSSColor(color: string) {
-  return color in CSSColors;
-}
+const fullHexToRGB = (hex: string): RGBAbytes => [
+  hexToByte(hex[1] + hex[2]),
+  hexToByte(hex[3] + hex[4]),
+  hexToByte(hex[5] + hex[6]),
+  hexToByte(hex[7] + hex[8]),
+];
 
-export function rotate(angle: number, by: number) {
-  return angle + by >= 360
-    ? angle + by - 360
-    : angle + by
-}
-
-export function normalToByte(normal: number) {
-  return Math.round(normal * 255)
-}
-
-export function unit(normal: number) {
-  return limit(normal, 1);
-}
+const shortHexToRGB = (hex: string): RGBAbytes => [
+  hexToByte(hex[1] + hex[1]),
+  hexToByte(hex[2] + hex[2]),
+  hexToByte(hex[3] + hex[3]),
+  hexToByte(hex[4] + hex[4]),
+];
 
 
-export function byte(byte: number) {
-  return limit(byte, 255);
-}
+// hsl parsing
 
-export function byte_(byte: number) {
-  return limit(Math.round(byte), 255);
-}
+export const hslToHSL = (color: string): HSLAbytes => {
+  let [clr, a] = color.split("(")[1]?.split(")")[0]?.split("/");
 
-export function angle(angle: number) {
-  return limit(angle, 360);
-}
-
-export function angle_(angle: number) {
-  return limit(Math.round(angle), 360);
-}
-
-export function percentage(pct: number) {
-  return limit(pct, 100);
-}
-
-export function percentage_(pct: number) {
-  return limit(Math.round(pct), 100);
-}
-
-export function limit(v: number, max: number) {
-  return v > max ? max : v < 0 ? 0 : v;
-}
-
-export function fullHex(hex: string) {
-  if (hex.length < 4) {
-    throw new Error("invalid hex color " + hex);
+  if (!clr) {
+    throw new Error("invalid hsl color " + color);
   }
 
-  return hex.length < 6
-    ? "#"
-    + hex[1].repeat(2)
-    + hex[2].repeat(2)
-    + hex[3].repeat(2)
-    + hex[4]?.repeat(2) ?? ""
-    : hex.substring(0, 9);
-}
+  let data = clr.split(" ");
 
-export function toHex(number: number, minLength: number = 2, max: number = 255) {
-  const hex = (number > max ? max : number).toString(16);
-  return "0".repeat(minLength - hex.length) + hex;
-}
+  if (data.length < 3) {
+    throw new Error("invalid hsl color " + color);
+  }
 
-export function HSLtoRGB([h, s, l]: number[]) {
-  s /= 100; l /= 100;
-  const k = (n: number) => (n + h / 30) % 12;
-  const a = s * Math.min(l, 1 - l);
-  const f = (n: number) =>
-    l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
+  let alpha = parseFloat(a?.replace("%", "")) || 1;
+  alpha = unit(alpha > 1 ? alpha / 100 : alpha);
 
   return [
-    byte(Math.floor(255 * f(0))),
-    byte(Math.floor(255 * f(8))),
-    byte(Math.floor(255 * f(4))),
+    parseInt(data[0]),
+    parseInt(data[1]),
+    parseInt(data[2]),
+    alpha
   ];
 }
 
-export function RGBtoHSL([r, g, b]: number[]) {
-  r /= 255; g /= 255; b /= 255;
+export const HSLtoHsl = ([h, s, l]: HSLAbytes) => `hsl(${h} ${s}% ${l}%)`;
+export const HSLtoHsla = ([h, s, l, a]: HSLAbytes) => `hsla(${h} ${s}% ${l}% / ${a.toFixed(2)})`;
 
-  let l = Math.max(r, g, b);
-  let s = l - Math.min(r, g, b);
-  let h = 0;
+// rbg parsing
 
-  if (s !== 0) {
-    switch (l) {
-      case r: h = (g - b) / s; break;
-      case g: h = (b - r) / s + 2; break;
-      case b: h = (r - g) / s + 4; break;
-    }
+export const rgbToRGB = (color: string): RGBAbytes => {
+  let rgb = color.split("(")[1]?.split(")")[0]?.split(",");
+
+  if (!rgb || rgb.length < 3) {
+    throw new Error("invalid rgb color " + color);
   }
 
   return [
-    angle(Math.floor(60 * h < 0 ? 60 * h + 360 : 60 * h)),
-    percentage(Math.floor(100 * (s ? (l <= 0.5 ? s / (2 * l - s) : s / (2 - (2 * l - s))) : 0))),
-    percentage(Math.floor((100 * (2 * l - s)) / 2)),
+    parseInt(rgb[0]),
+    parseInt(rgb[1]),
+    parseInt(rgb[2]),
+    byte_((parseFloat(rgb[3]) || 1) * 255),
   ];
 }
 
-export function contrast(Byte: number, value: number) {
-  return byte(Math.round(value * (Byte - 128) + 128));
+export const RGBToRgb = ([r, g, b]: RGBAbytes) => `rgb(${r},${g},${b})`;
+export const RGBToRgba = ([r, g, b, a]: RGBAbytes) => `rgba(${r},${g},${b},${(a / 255).toFixed(2)})`;
+
+
+// clamping
+
+export const unit = (n: number) => limit(n, 1);
+
+export const byte = (b: number): Byte => limit(b, 255);
+export const byte_ = (b: number): Byte => byte(Math.round(b));
+
+export const angle = (d: number): Angle => limit(d, 360);
+export const angle_ = (d: number): Angle => angle(Math.round(d));
+
+export const pct = (p: number): Percentage => limit(p, 100);
+export const pct_ = (p: number): Percentage => pct(Math.round(p));
+
+export const limit = (v: number, max: number) => v > max ? max : v < 0 ? 0 : v;
+
+export const rotate_ = (angle: Angle, deg: number): Angle => {
+  return angle + deg > 359 ? angle + deg - 359 : angle + deg
 }
 
-export function brightness(Byte: number, value: number) {
-  return byte(Math.round(Byte * value));
+
+
+// rgb byte filters
+
+export const contrast = (byte: number, value: number) =>
+  byte_(value * (byte - 128) + 128);
+
+export const brightness = (byte: number, value: number) =>
+  byte_(byte * value)
+
+export const solid = (byte: number, bg: number, alpha: number) =>
+  byte_((byte * alpha) + (bg * (1 - alpha)));
+
+
+
+// luma
+
+export const luma = ([r, g, b, a]: RGBAbytes) => {
+  return (
+    0.2126 * r
+    + 0.7152 * g
+    + 0.0722 * b
+  ) / 255;
 }
 
-export function solid(byte: number, bg: number, alpha: number) {
-  return Math.round((byte * alpha) + (bg * (1 - alpha)));
+export const lumaAlpha = (
+  [r, g, b, a]: RGBAbytes, [r_, g_, b_]: number[] = [255, 255, 255]
+) => {
+  return (
+    0.2126 * solid(r, r_, a)
+    + 0.7152 * solid(g, g_, a)
+    + 0.0722 * solid(b, b_, a)
+  ) / 255;
+}
+
+export const lumaYUV = ([r, g, b, a]: RGBAbytes) => {
+  return (
+    0.299 * r
+    + 0.587 * g
+    + 0.114 * b
+  ) / 255;
+}
+
+export const lumaYUVAlpha = (
+  [r, g, b, a]: RGBAbytes, [r_, g_, b_]: number[] = [255, 255, 255]
+) => {
+  return (
+    0.299 * solid(r, r_, a)
+    + 0.587 * solid(g, g_, a)
+    + 0.114 * solid(b, b_, a)
+  ) / 255;
 }
