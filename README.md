@@ -80,6 +80,7 @@ same.filter({
 convert a transparent color into a solid one, maintaining background influence
 
 ```javascript
-Color.from("#ffaa4480").background("#fff").solid(); 
+let color = Color.from("#ffaa4480").background("#fff").solid();
+
 color.hex; //#ffd4a1
 ```
