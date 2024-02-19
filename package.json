@@ -1,0 +1,27 @@
+{
+    "name": "@9elt/color",
+    "version": "0.1.0",
+    "description": "A lightweight, fast color class, optimized for bundle size and color manipulation.",
+    "main": "./dist/esm/index.js",
+    "types": "./dist/esm/index.d.ts",
+    "exports": {
+        "import": "./dist/esm/index.js",
+        "require": "./dist/cjs/index.js"
+    },
+    "scripts": {
+        "build:cjs": "tsc -p tsconfig.cjs.json",
+        "build:esm": "tsc -p tsconfig.esm.json && echo '{\"type\":\"module\"}' >dist/esm/package.json",
+        "build": "rm -rf dist && npm run build:cjs && npm run build:esm",
+        "pub": "npm run build && npm run test && npm publish"
+    },
+    "author": "Lorenzo Cicuttin",
+    "license": "MIT",
+    "keywords": [
+        "color",
+        "rgb",
+        "hsl"
+    ],
+    "readme": "./README",
+    "homepage": "https://github.com/9elt/color#readme",
+    "repository": "github:9elt/color"
+}

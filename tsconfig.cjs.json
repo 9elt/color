@@ -1,0 +1,10 @@
+{
+    "include": [
+        "./index.ts"
+    ],
+    "compilerOptions": {
+        "target": "ES2015",
+        "module": "NodeNext",
+        "outDir": "./dist/cjs",
+    }
+}
