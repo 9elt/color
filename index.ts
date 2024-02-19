@@ -95,11 +95,8 @@ export class Color extends Uint16Array {
             return;
 
         let h = this[H];
-        let s = this[S];
-        let l = this[L];
-
-        s /= 100; l /= 100;
-        s = s * Math.min(l, 1 - l);
+        let l = this[L] / 100;
+        let s = (this[S] / 100) * Math.min(l, 1 - l);
 
         const f = (n: number) => {
             n = (n + h / 30) % 12;
@@ -147,8 +144,8 @@ export function mix(into: Color, from: Color, stren: number = 0.5): void {
     into[MODEL] = RGB;
 }
 
-export function opacity(color: Color, a = 1): void {
-    color[A] = a * 255;
+export function opacity(color: Color, stren = 1): void {
+    color[A] = stren * 255;
 }
 
 export function lightness(color: Color, stren = 1): void {
