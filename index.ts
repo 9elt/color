@@ -289,3 +289,56 @@ export function bytesHsl(color: Color): Uint16Array {
 
     return bytes;
 }
+
+export function eq(a: Color, b: Color): boolean {
+    rgb(a);
+    rgb(b);
+
+    return a[R] === b[R]
+        && a[G] === b[G]
+        && a[B] === b[B]
+        && a[A] === b[A];
+}
+
+export function fromString(color: string): Color {
+    if (color.startsWith('#'))
+        return fromHex(color);
+
+    if (color.startsWith('rgb'))
+        return fromRgb(color);
+
+    throw new Error('Unsupported color string: ' + color);
+}
+
+export function fromHex(hex: string): Color {
+    if (!/^#(([0-9a-f]{3,4})){1,2}$/i.test(hex))
+        throw new Error('Invalid hex color: ' + hex);
+
+    return hex.length < 6
+        ? new Color(
+            parseInt(hex[1] + hex[1], 16),
+            parseInt(hex[2] + hex[2], 16),
+            parseInt(hex[3] + hex[3], 16),
+            hex.length === 5 ? parseInt(hex[4] + hex[4], 16) : 255
+        )
+        : new Color(
+            parseInt(hex.slice(1, 3), 16),
+            parseInt(hex.slice(3, 5), 16),
+            parseInt(hex.slice(5, 7), 16),
+            hex.length === 9 ? parseInt(hex.slice(7, 9), 16) : 255
+        );
+}
+
+export function fromRgb(rgba: string): Color {
+    const match = rgba.match(/rgba?\((\d+),\s*(\d+),\s*(\d+),?\s*(\d*(?:\.\d+)?)?\)/);
+
+    if (!match)
+        throw new Error('Invalid rgba color: ' + rgba);
+
+    return new Color(
+        parseInt(match[1]),
+        parseInt(match[2]),
+        parseInt(match[3]),
+        match[4] ? Math.round(parseFloat(match[4]) * 255) : 255
+    );
+}
