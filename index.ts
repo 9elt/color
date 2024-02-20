@@ -16,7 +16,11 @@ export const HSL = 2;
 // `this[MODEL]` specifies the up-to-date models
 // `RGB`, `HSL` or `HSL | RGB` (both)
 
-export class Color extends Uint16Array implements Color {
+export class Color extends Uint16Array {
+    constructor(color: Color);
+
+    constructor(r: number, g: number, b: number, a: number);
+
     constructor(
         r: number | Color = 255,
         g: number = 255,
