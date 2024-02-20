@@ -168,6 +168,13 @@ export function mix(into: Color, from: Color, stren: number = 0.5): void {
     into[MODEL] = RGB;
 }
 
+export function fill(color: Color, background: Color = new Color()): void {
+    if (color[A] === 255)
+        return;
+
+    mix(color, background, color[A] / 255);
+}
+
 export function opacity(color: Color, stren = 1): void {
     color[A] = stren * 255;
 }
