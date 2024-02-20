@@ -16,11 +16,7 @@ export const HSL = 2;
 // `this[MODEL]` specifies the up-to-date models
 // `RGB`, `HSL` or `HSL | RGB` (both)
 
-export class Color extends Uint16Array {
-    constructor(color: Color);
-
-    constructor(r?: number, g?: number, b?: number, a?: number);
-
+export class Color extends Uint16Array implements Color {
     constructor(
         r: number | Color = 255,
         g: number = 255,
@@ -262,4 +258,30 @@ export function invertHsl(color: Color): void {
     color[L] = 100 - color[L];
 
     color[MODEL] = HSL;
+}
+
+export function bytes(color: Color): Uint8Array {
+    rgb(color);
+
+    const bytes = new Uint8Array(4);
+
+    bytes[0] = color[R];
+    bytes[1] = color[G];
+    bytes[2] = color[B];
+    bytes[3] = color[A];
+
+    return bytes;
+}
+
+export function bytesHsl(color: Color): Uint16Array {
+    hsl(color);
+
+    const bytes = new Uint16Array(4);
+
+    bytes[0] = color[H];
+    bytes[1] = color[S];
+    bytes[2] = color[L];
+    bytes[3] = color[A];
+
+    return bytes;
 }
