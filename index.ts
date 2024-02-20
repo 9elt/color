@@ -17,9 +17,10 @@ export const HSL = 2;
 // `RGB`, `HSL` or `HSL | RGB` (both)
 
 export class Color extends Uint16Array {
+
     constructor(color: Color);
 
-    constructor(r: number, g: number, b: number, a: number);
+    constructor(r?: number, g?: number, b?: number, a?: number);
 
     constructor(
         r: number | Color = 255,
