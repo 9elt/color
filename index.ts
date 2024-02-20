@@ -121,7 +121,10 @@ export function luma(color: Color): number {
 }
 
 export function contrast(a: Color, b: Color): number {
-    return Math.abs(luma(a) - luma(b));
+    const luma_a = luma(a);
+    const luma_b = luma(b);
+
+    return (Math.max(luma_a, luma_b) + 0.05) / (Math.min(luma_a, luma_b) + 0.05);
 }
 
 // Y′UV https://en.wikipedia.org/wiki/Y%E2%80%B2UV
