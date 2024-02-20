@@ -258,7 +258,6 @@ export function invertHsl(color: Color): void {
     hsl(color);
 
     color[H] = (color[H] + 180) % 360;
-    color[H] < 0 && (color[H] += 360);
 
     color[S] = 100 - color[S];
     color[L] = 100 - color[L];
