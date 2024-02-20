@@ -11,11 +11,10 @@ export const MODEL = 7;
 export const RGB = 1;
 export const HSL = 2;
 
-// smaller than the smallest rbg color string
+// lazily implements Rgb and Hsl color models
 //
-// Color            =   16 bit * 8   =  128 bit
-//
-// "rgb(0, 0, 0)"   =   16 bit * 12  =  192 bit
+// `this[MODEL]` specifies the up-to-date models
+// `RGB`, `HSL` or `HSL | RGB` (both)
 
 export class Color extends Uint16Array {
     constructor(color: Color);
@@ -64,6 +63,8 @@ export class Color extends Uint16Array {
 
     hsl(): void {
         if (this[MODEL] & HSL)
+
+            // HSL already up to date
             return;
 
         let r = this[R] / 255;
@@ -92,6 +93,8 @@ export class Color extends Uint16Array {
 
     rgb(): void {
         if (this[MODEL] & RGB)
+
+            // RGB already up to date
             return;
 
         let h = this[H];
@@ -109,6 +112,16 @@ export class Color extends Uint16Array {
 
         this[MODEL] |= RGB;
     }
+}
+
+export function luma(color: Color): number {
+    color.rgb();
+
+    return 0.2126 * color[R] + 0.7152 * color[G] + 0.0722 * color[B];
+}
+
+export function contrast(a: Color, b: Color): number {
+    return Math.abs(luma(a) - luma(b));
 }
 
 // Y′UV https://en.wikipedia.org/wiki/Y%E2%80%B2UV
@@ -148,43 +161,57 @@ export function opacity(color: Color, stren = 1): void {
     color[A] = stren * 255;
 }
 
-export function lightness(color: Color, stren = 1): void {
+export function hue(color: Color, deg = 360): void {
     color.hsl();
 
-    color[L] = stren * 100;
+    color[H] = deg;
 
     color[MODEL] = HSL;
 }
 
-export function rotateHue(color: Color, deg: number): void {
+export function saturation(color: Color, perc = 100): void {
+    color.hsl();
+
+    color[S] = perc;
+
+    color[MODEL] = HSL;
+}
+
+export function lightness(color: Color, perc = 100): void {
+    color.hsl();
+
+    color[L] = perc;
+
+    color[MODEL] = HSL;
+}
+
+export function rotateHue(color: Color, deg = 180): void {
     color.hsl();
 
     color[H] = (color[H] + deg) % 360;
-
-    color[MODEL] = HSL;
-}
-
-export function saturate(color: Color, stren = 1): void {
-    color.hsl();
-
-    color[S] = stren * 100;
+    color[H] < 0 && (color[H] += 360);
 
     color[MODEL] = HSL;
 }
 
 export function invert(color: Color): void {
-    if (color[MODEL] & RGB) {
-        color[R] = 255 - color[R];
-        color[G] = 255 - color[G];
-        color[B] = 255 - color[B];
+    color.rgb();
 
-        color[MODEL] = RGB;
-    }
-    else if (color[MODEL] & HSL) {
-        color[H] = (color[H] + 180) % 360;
-        color[S] = 100 - color[S];
-        color[L] = 100 - color[L];
+    color[R] = 255 - color[R];
+    color[G] = 255 - color[G];
+    color[B] = 255 - color[B];
 
-        color[MODEL] = HSL;
-    }
+    color[MODEL] = RGB;
+}
+
+export function invertHsl(color: Color): void {
+    color.hsl();
+
+    color[H] = (color[H] + 180) % 360;
+    color[H] < 0 && (color[H] += 360);
+
+    color[S] = 100 - color[S];
+    color[L] = 100 - color[L];
+
+    color[MODEL] = HSL;
 }
