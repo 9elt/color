@@ -172,7 +172,7 @@ export function fill(color: Color, background = new Color()): void {
     if (color[A] === 255)
         return;
 
-    mix(color, background, color[A] / 255);
+    mix(color, background, 1 - color[A] / 255);
 }
 
 export function opacity(color: Color, stren = 1): void {
