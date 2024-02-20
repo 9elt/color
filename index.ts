@@ -45,18 +45,20 @@ export class Color extends Uint16Array {
 
     toString(): string {
         return this[MODEL] & RGB
+
             ? 'rgba('
             + this[R] + ','
             + this[G] + ','
             + this[B] + ','
-            + (this[A] / 255).toFixed(2) +
-            ')'
+            + (this[A] / 255).toFixed(2)
+            + ')'
+
             : 'hsla('
             + this[H] + ','
             + this[S] + '%,'
             + this[L] + '%,'
-            + (this[A] / 255).toFixed(2) +
-            ')';
+            + (this[A] / 255).toFixed(2)
+            + ')';
     }
 }
 
@@ -142,6 +144,16 @@ export function isLight(color: Color): boolean {
 // All methods modify colors in place, it is
 // up to the user to clone them if needed `new Color(color)`
 
+export function grayscale(color: Color): void {
+    const gray = lumaYUV(color);
+
+    color[R] = gray;
+    color[G] = gray;
+    color[B] = gray;
+
+    color[MODEL] = RGB;
+}
+
 export function mix(into: Color, from: Color, stren: number = 0.5): void {
     rgb(into);
     rgb(from);
@@ -193,8 +205,40 @@ export function rotateHue(color: Color, deg = 180): void {
     color[MODEL] = HSL;
 }
 
-export function invert(color: Color): void {
+export function saturate(color: Color, stren = 1): void {
     hsl(color);
+
+    color[S] = Math.min(100, color[S] * stren);
+
+    color[MODEL] = HSL;
+}
+
+export function desaturate(color: Color, stren = 1): void {
+    hsl(color);
+
+    color[S] = Math.max(0, color[S] * (1 - stren));
+
+    color[MODEL] = HSL;
+}
+
+export function lighten(color: Color, stren = 1): void {
+    hsl(color);
+
+    color[L] = Math.min(100, color[L] * stren);
+
+    color[MODEL] = HSL;
+}
+
+export function darken(color: Color, stren = 1): void {
+    hsl(color);
+
+    color[L] = Math.max(0, color[L] * (1 - stren));
+
+    color[MODEL] = HSL;
+}
+
+export function invert(color: Color): void {
+    rgb(color);
 
     color[R] = 255 - color[R];
     color[G] = 255 - color[G];
