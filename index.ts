@@ -11,7 +11,7 @@ export const MODEL = 7;
 export const RGB = 1;
 export const HSL = 2;
 
-// lazily implements Rgb and Hsl color models
+// Lazily implements Rgb and Hsl color models
 //
 // `this[MODEL]` specifies the up-to-date models
 // `RGB`, `HSL` or `HSL | RGB` (both)
@@ -59,8 +59,6 @@ export class Color extends Uint16Array {
             ')';
     }
 
-    // ensures that the hsl values are up to date
-
     hsl(): void {
         if (this[MODEL] & HSL)
 
@@ -88,8 +86,6 @@ export class Color extends Uint16Array {
 
         this[MODEL] |= HSL;
     }
-
-    // ensures that the rgb values are up to date
 
     rgb(): void {
         if (this[MODEL] & RGB)
@@ -143,8 +139,8 @@ export function isLight(color: Color): boolean {
     return lumaYUV(color) >= 128;
 }
 
-// all methods modify the color in place,
-// it is up to the user to clone the color if needed `new Color(color)`
+// All methods modify colors in place, it is
+// up to the user to clone them if needed `new Color(color)`
 
 export function mix(into: Color, from: Color, stren: number = 0.5): void {
     into.rgb();
