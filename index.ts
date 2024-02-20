@@ -154,7 +154,7 @@ export function grayscale(color: Color): void {
     color[MODEL] = RGB;
 }
 
-export function mix(into: Color, from: Color, stren: number = 0.5): void {
+export function mix(into: Color, from: Color, stren = 0.5): void {
     rgb(into);
     rgb(from);
 
@@ -168,7 +168,7 @@ export function mix(into: Color, from: Color, stren: number = 0.5): void {
     into[MODEL] = RGB;
 }
 
-export function fill(color: Color, background: Color = new Color()): void {
+export function fill(color: Color, background = new Color()): void {
     if (color[A] === 255)
         return;
 
