@@ -206,8 +206,7 @@ export function lightness(color: Color, perc = 100): void {
 export function rotate(color: Color, deg = 180): void {
     hsl(color);
 
-    color[H] = (color[H] + deg) % 360;
-    color[H] < 0 && (color[H] += 360);
+    (color[H] = (color[H] + deg) % 360) < 0 && (color[H] += 360);
 
     color[MODEL] = HSL;
 }
