@@ -58,60 +58,60 @@ export class Color extends Uint16Array {
             + (this[A] / 255).toFixed(2) +
             ')';
     }
+}
 
-    hsl(): void {
-        if (this[MODEL] & HSL)
+export function hsl(color: Color): void {
+    if (color[MODEL] & HSL)
 
-            // HSL already up to date
-            return;
+        // HSL already up to date
+        return;
 
-        let r = this[R] / 255;
-        let g = this[G] / 255;
-        let b = this[B] / 255;
+    let r = color[R] / 255;
+    let g = color[G] / 255;
+    let b = color[B] / 255;
 
-        let l = Math.max(r, g, b);
-        let s = l - Math.min(r, g, b);
-        let h = 0;
+    let l = Math.max(r, g, b);
+    let s = l - Math.min(r, g, b);
+    let h = 0;
 
-        if (s !== 0)
-            switch (l) {
-                case r: h = (g - b) / s; break;
-                case g: h = (b - r) / s + 2; break;
-                case b: h = (r - g) / s + 4; break;
-            };
-
-        this[H] = 60 * h < 0 ? 60 * h + 360 : 60 * h;
-        this[S] = 100 * (s ? (l <= 0.5 ? s / (2 * l - s) : s / (2 - (2 * l - s))) : 0);
-        this[L] = (100 * (2 * l - s)) / 2;
-
-        this[MODEL] |= HSL;
-    }
-
-    rgb(): void {
-        if (this[MODEL] & RGB)
-
-            // RGB already up to date
-            return;
-
-        let h = this[H];
-        let l = this[L] / 100;
-        let s = (this[S] / 100) * Math.min(l, 1 - l);
-
-        const f = (n: number) => {
-            n = (n + h / 30) % 12;
-            return 255 * (l - s * Math.max(-1, Math.min(n - 3, 9 - n, 1)));
+    if (s !== 0)
+        switch (l) {
+            case r: h = (g - b) / s; break;
+            case g: h = (b - r) / s + 2; break;
+            case b: h = (r - g) / s + 4; break;
         };
 
-        this[R] = f(0);
-        this[G] = f(8);
-        this[B] = f(4);
+    color[H] = 60 * h < 0 ? 60 * h + 360 : 60 * h;
+    color[S] = 100 * (s ? (l <= 0.5 ? s / (2 * l - s) : s / (2 - (2 * l - s))) : 0);
+    color[L] = (100 * (2 * l - s)) / 2;
 
-        this[MODEL] |= RGB;
-    }
+    color[MODEL] |= HSL;
+}
+
+export function rgb(color: Color): void {
+    if (color[MODEL] & RGB)
+
+        // RGB already up to date
+        return;
+
+    let h = color[H];
+    let l = color[L] / 100;
+    let s = (color[S] / 100) * Math.min(l, 1 - l);
+
+    const f = (n: number) => {
+        n = (n + h / 30) % 12;
+        return 255 * (l - s * Math.max(-1, Math.min(n - 3, 9 - n, 1)));
+    };
+
+    color[R] = f(0);
+    color[G] = f(8);
+    color[B] = f(4);
+
+    color[MODEL] |= RGB;
 }
 
 export function luma(color: Color): number {
-    color.rgb();
+    rgb(color);
 
     return 0.2126 * color[R] + 0.7152 * color[G] + 0.0722 * color[B];
 }
@@ -126,7 +126,7 @@ export function contrast(a: Color, b: Color): number {
 // Y′UV https://en.wikipedia.org/wiki/Y%E2%80%B2UV
 
 export function lumaYUV(color: Color): number {
-    color.rgb();
+    rgb(color);
 
     return 0.299 * color[R] + 0.587 * color[G] + 0.114 * color[B];
 }
@@ -143,8 +143,8 @@ export function isLight(color: Color): boolean {
 // up to the user to clone them if needed `new Color(color)`
 
 export function mix(into: Color, from: Color, stren: number = 0.5): void {
-    into.rgb();
-    from.rgb();
+    rgb(into);
+    rgb(from);
 
     const istren = 1 - stren;
 
@@ -161,7 +161,7 @@ export function opacity(color: Color, stren = 1): void {
 }
 
 export function hue(color: Color, deg = 360): void {
-    color.hsl();
+    hsl(color);
 
     color[H] = deg;
 
@@ -169,7 +169,7 @@ export function hue(color: Color, deg = 360): void {
 }
 
 export function saturation(color: Color, perc = 100): void {
-    color.hsl();
+    hsl(color);
 
     color[S] = perc;
 
@@ -177,7 +177,7 @@ export function saturation(color: Color, perc = 100): void {
 }
 
 export function lightness(color: Color, perc = 100): void {
-    color.hsl();
+    hsl(color);
 
     color[L] = perc;
 
@@ -185,7 +185,7 @@ export function lightness(color: Color, perc = 100): void {
 }
 
 export function rotateHue(color: Color, deg = 180): void {
-    color.hsl();
+    hsl(color);
 
     color[H] = (color[H] + deg) % 360;
     color[H] < 0 && (color[H] += 360);
@@ -194,7 +194,7 @@ export function rotateHue(color: Color, deg = 180): void {
 }
 
 export function invert(color: Color): void {
-    color.rgb();
+    hsl(color);
 
     color[R] = 255 - color[R];
     color[G] = 255 - color[G];
@@ -204,7 +204,7 @@ export function invert(color: Color): void {
 }
 
 export function invertHsl(color: Color): void {
-    color.hsl();
+    hsl(color);
 
     color[H] = (color[H] + 180) % 360;
     color[H] < 0 && (color[H] += 360);
