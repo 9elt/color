@@ -168,7 +168,11 @@ export function fill(color: Color, background = new Color()): void {
     if (color[A] === 255)
         return;
 
-    mix(color, background, 1 - color[A] / 255);
+    const stren = 1 - color[A] / 255;
+
+    color[A] = 255;
+
+    mix(color, background, stren);
 }
 
 export function opacity(color: Color, stren = 1): void {
