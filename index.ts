@@ -230,7 +230,7 @@ export function desaturate(color: Color, stren = 1): void {
 export function lighten(color: Color, stren = 1): void {
     hsl(color);
 
-    color[L] = Math.min(100, color[L] * stren);
+    color[L] = Math.min(100, color[L] * (1 + stren));
 
     color[MODEL] = HSL;
 }
