@@ -11,10 +11,6 @@ export const MODEL = 7;
 export const RGB = 1;
 export const HSL = 2;
 
-// Lazily implements Rgb and Hsl color models
-//
-// `this[MODEL]` specifies the up-to-date models
-// `RGB`, `HSL` or `HSL | RGB` (both)
 
 export class Color extends Uint16Array {
 
@@ -40,6 +36,11 @@ export class Color extends Uint16Array {
             this[G] = g;
             this[B] = b;
             this[A] = a;
+
+            // Lazily implements Rgb and Hsl color models
+            //
+            // `this[MODEL]` specifies the up-to-date models
+            // `RGB`, `HSL` or `HSL | RGB` (both)
             this[MODEL] = RGB;
         }
     }
@@ -62,6 +63,10 @@ export class Color extends Uint16Array {
             + ')';
     }
 }
+
+/**
+ * require the HSL model to be up-to-date
+ */
 
 export function hsl(color: Color): void {
     if (color[MODEL] & HSL)
@@ -91,6 +96,10 @@ export function hsl(color: Color): void {
     color[MODEL] |= HSL;
 }
 
+/**
+ * require the RGB model to be up-to-date
+ */
+
 export function rgb(color: Color): void {
     if (color[MODEL] & RGB)
 
@@ -113,11 +122,19 @@ export function rgb(color: Color): void {
     color[MODEL] |= RGB;
 }
 
+/**
+ * get the color luminosity
+ */
+
 export function luma(color: Color): number {
     rgb(color);
 
     return 0.2126 * color[R] + 0.7152 * color[G] + 0.0722 * color[B];
 }
+
+/**
+ * get the color contrast ratio (ranges from 1 to 21)
+ */
 
 export function contrast(a: Color, b: Color): number {
     const luma_a = luma(a) / 255;
@@ -126,7 +143,10 @@ export function contrast(a: Color, b: Color): number {
     return (Math.max(luma_a, luma_b) + 0.05) / (Math.min(luma_a, luma_b) + 0.05);
 }
 
-// Y′UV https://en.wikipedia.org/wiki/Y%E2%80%B2UV
+/**
+ * get the color luminosity using the Y'UV model
+ * Y′UV https://en.wikipedia.org/wiki/Y%E2%80%B2UV
+ */
 
 export function lumaYUV(color: Color): number {
     rgb(color);
@@ -142,8 +162,9 @@ export function isLight(color: Color): boolean {
     return lumaYUV(color) >= 128;
 }
 
-// All methods modify colors in place, it is
-// up to the user to clone them if needed `new Color(color)`
+/**
+ * convert the color to grayscale
+ */
 
 export function grayscale(color: Color): void {
     const gray = lumaYUV(color);
@@ -155,19 +176,29 @@ export function grayscale(color: Color): void {
     color[MODEL] = RGB;
 }
 
-export function mix(into: Color, from: Color, stren = 0.5): void {
+/**
+ * mix two colors
+ * @param rstren - 0 to 1
+ */
+
+export function mix(into: Color, from: Color, rstren = 0.5): void {
     rgb(into);
     rgb(from);
 
-    const istren = 1 - stren;
+    const lstren = 1 - rstren;
 
-    into[R] = into[R] * istren + from[R] * stren;
-    into[G] = into[G] * istren + from[G] * stren;
-    into[B] = into[B] * istren + from[B] * stren;
-    into[A] = into[A] * istren + from[A] * stren;
+    into[R] = into[R] * lstren + from[R] * rstren;
+    into[G] = into[G] * lstren + from[G] * rstren;
+    into[B] = into[B] * lstren + from[B] * rstren;
+    into[A] = into[A] * lstren + from[A] * rstren;
 
     into[MODEL] = RGB;
 }
+
+/**
+ * fill the color transparency with a background color,
+ * defaults to white
+ */
 
 export function fill(color: Color, background = new Color()): void {
     if (color[A] === 255)
@@ -180,9 +211,19 @@ export function fill(color: Color, background = new Color()): void {
     mix(color, background, stren);
 }
 
+/**
+ * set the color opacity
+ * @param stren - 0 to 1
+ */
+
 export function opacity(color: Color, stren = 1): void {
     color[A] = stren * 255;
 }
+
+/**
+ * set the color hue
+ * @param deg - 0 to 360
+ */
 
 export function hue(color: Color, deg = 360): void {
     hsl(color);
@@ -192,6 +233,11 @@ export function hue(color: Color, deg = 360): void {
     color[MODEL] = HSL;
 }
 
+/**
+ * set the color saturation
+ * @param perc - 0 to 100
+ */
+
 export function saturation(color: Color, perc = 100): void {
     hsl(color);
 
@@ -199,6 +245,11 @@ export function saturation(color: Color, perc = 100): void {
 
     color[MODEL] = HSL;
 }
+
+/**
+ * set the color lightness
+ * @param perc - 0 to 100
+ */
 
 export function lightness(color: Color, perc = 100): void {
     hsl(color);
@@ -208,6 +259,11 @@ export function lightness(color: Color, perc = 100): void {
     color[MODEL] = HSL;
 }
 
+/**
+ * ratate the color hue
+ * @param deg - -360 to 360
+ */
+
 export function rotate(color: Color, deg = 180): void {
     hsl(color);
 
@@ -215,6 +271,11 @@ export function rotate(color: Color, deg = 180): void {
 
     color[MODEL] = HSL;
 }
+
+/**
+ * multiply the color saturation
+ * @param stren - -1 to 1
+ */
 
 export function saturate(color: Color, stren = 1): void {
     hsl(color);
@@ -224,13 +285,10 @@ export function saturate(color: Color, stren = 1): void {
     color[MODEL] = HSL;
 }
 
-export function desaturate(color: Color, stren = 1): void {
-    hsl(color);
-
-    color[S] = Math.max(0, color[S] * (1 - stren));
-
-    color[MODEL] = HSL;
-}
+/**
+ * multiply the color lightness
+ * @param stren - -1 to 1
+ */
 
 export function lighten(color: Color, stren = 1): void {
     hsl(color);
@@ -240,6 +298,11 @@ export function lighten(color: Color, stren = 1): void {
     color[MODEL] = HSL;
 }
 
+/**
+ * multiply the color lightness
+ * @param stren - -1 to 1
+ */
+
 export function darken(color: Color, stren = 1): void {
     hsl(color);
 
@@ -247,6 +310,10 @@ export function darken(color: Color, stren = 1): void {
 
     color[MODEL] = HSL;
 }
+
+/**
+ * invert the color in RGB
+ */
 
 export function invert(color: Color): void {
     rgb(color);
@@ -258,6 +325,10 @@ export function invert(color: Color): void {
     color[MODEL] = RGB;
 }
 
+/**
+ * invert the color in HSL
+ */
+
 export function invertHsl(color: Color): void {
     hsl(color);
 
@@ -268,6 +339,10 @@ export function invertHsl(color: Color): void {
 
     color[MODEL] = HSL;
 }
+
+/**
+ * get the color RGBA bytes
+ */
 
 export function bytes(color: Color): Uint8Array {
     rgb(color);
@@ -282,6 +357,10 @@ export function bytes(color: Color): Uint8Array {
     return bytes;
 }
 
+/**
+ * get the color HSLA bytes
+ */
+
 export function bytesHsl(color: Color): Uint16Array {
     hsl(color);
 
@@ -295,6 +374,10 @@ export function bytesHsl(color: Color): Uint16Array {
     return bytes;
 }
 
+/**
+ * checks RGBA equality
+ */
+
 export function eq(a: Color, b: Color): boolean {
     rgb(a);
     rgb(b);
@@ -305,6 +388,11 @@ export function eq(a: Color, b: Color): boolean {
         && a[A] === b[A];
 }
 
+/**
+ * parse a color string, only supports hex and rgba,
+ * throws if invalid or unsupported
+ */
+
 export function fromString(color: string): Color {
     if (color.startsWith('#'))
         return fromHex(color);
@@ -314,6 +402,11 @@ export function fromString(color: string): Color {
 
     throw new Error('Unsupported color string: ' + color);
 }
+
+/**
+ * parse a hex color string,
+ * throws if invalid
+ */
 
 export function fromHex(hex: string): Color {
     if (!/^#(([0-9a-f]{3,4})){1,2}$/i.test(hex))
@@ -333,6 +426,11 @@ export function fromHex(hex: string): Color {
             hex.length === 9 ? parseInt(hex.slice(7, 9), 16) : 255
         );
 }
+
+/**
+ * parse a rgba color string,
+ * throws if invalid
+ */
 
 export function fromRgb(rgba: string): Color {
     const match = rgba.match(/rgba?\((\d+),\s*(\d+),\s*(\d+),?\s*(\d*(?:\.\d+)?)?\)/);

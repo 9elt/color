@@ -8,5 +8,6 @@
         "outDir": "./dist/esm",
         "declaration": true,
         "sourceMap": true,
+        "removeComments": false,
     }
 }
