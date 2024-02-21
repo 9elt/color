@@ -41,6 +41,7 @@ export class Color extends Uint16Array {
             //
             // `this[MODEL]` specifies the up-to-date models
             // `RGB`, `HSL` or `HSL | RGB` (both)
+
             this[MODEL] = RGB;
         }
     }
@@ -71,7 +72,7 @@ export class Color extends Uint16Array {
 export function hsl(color: Color): void {
     if (color[MODEL] & HSL)
 
-        // HSL already up to date
+        // HSL already up-to-date
         return;
 
     let r = color[R] / 255;
@@ -103,7 +104,7 @@ export function hsl(color: Color): void {
 export function rgb(color: Color): void {
     if (color[MODEL] & RGB)
 
-        // RGB already up to date
+        // RGB already up-to-date
         return;
 
     let h = color[H];
@@ -260,7 +261,7 @@ export function lightness(color: Color, perc = 100): void {
 }
 
 /**
- * ratate the color hue
+ * rotate the color hue
  * @param deg - -360 to 360
  */
 
