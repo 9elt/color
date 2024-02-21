@@ -1,3 +1,5 @@
 Color
 
 A lightweight, fast color class, optimized for bundle size and color manipulation.
+
+The core class is very small, and only includes the 'toString' method, the color manipulation and other methods are individually exported.
