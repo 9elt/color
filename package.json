@@ -1,6 +1,6 @@
 {
     "name": "@9elt/color",
-    "version": "0.1.1",
+    "version": "0.1.2",
     "description": "A lightweight, fast color class, optimized for bundle size and color manipulation.",
     "main": "./dist/esm/index.js",
     "types": "./dist/esm/index.d.ts",
@@ -9,10 +9,10 @@
         "require": "./dist/cjs/index.js"
     },
     "scripts": {
-        "build:cjs": "tsc -p tsconfig.cjs.json",
-        "build:esm": "tsc -p tsconfig.esm.json && echo '{\"type\":\"module\"}' >dist/esm/package.json",
+        "build:cjs": "tsc -p tsconfig.cjs.json && d=\"$(cat ./dist/cjs/index.d.ts)\"; echo \"${d/ extends Uint16Array/}\"> ./dist/cjs/index.d.ts",
+        "build:esm": "tsc -p tsconfig.esm.json && d=\"$(cat ./dist/esm/index.d.ts)\"; echo \"${d/ extends Uint16Array/}\"> ./dist/esm/index.d.ts && echo '{\"type\":\"module\"}' >dist/esm/package.json",
         "build": "rm -rf dist && npm run build:cjs && npm run build:esm",
-        "pub": "npm run build && npm publish"
+        "pub": "npm run build && mv README README.md && npm publish; mv README.md README"
     },
     "author": "Lorenzo Cicuttin",
     "license": "MIT",
