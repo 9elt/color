@@ -1,7 +1,12 @@
+// these can be used to directly access color bytes (e.g. color[R] for red),
+// note, however, that bytes may not be up-to-date, and `rgb` (or `hsl`)
+// function should be called before accessing them
+
 export const R = 0;
 export const G = 1;
 export const B = 2;
 export const A = 3;
+
 export const H = 4;
 export const S = 5;
 export const L = 6;
@@ -11,6 +16,9 @@ export const MODEL = 7;
 export const RGB = 1;
 export const HSL = 2;
 
+/**
+ * core class
+ */
 
 export class Color extends Uint16Array {
 

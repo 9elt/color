@@ -1,6 +1,6 @@
 {
     "name": "@9elt/color",
-    "version": "0.1.2",
+    "version": "0.1.3",
     "description": "A lightweight, fast color class, optimized for bundle size and color manipulation.",
     "main": "./dist/esm/index.js",
     "types": "./dist/esm/index.d.ts",
