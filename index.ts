@@ -83,22 +83,19 @@ export function hsl(color: Color): void {
         // HSL already up-to-date
         return;
 
-    let r = color[R] / 255;
-    let g = color[G] / 255;
-    let b = color[B] / 255;
+    const r = color[R] / 255;
+    const g = color[G] / 255;
+    const b = color[B] / 255;
 
-    let l = Math.max(r, g, b);
-    let s = l - Math.min(r, g, b);
-    let h = 0;
+    const l = Math.max(r, g, b);
+    const s = l - Math.min(r, g, b);
+    const h = s === 0 ? 0 :
+        l === r ? (g - b) / s :
+            l === g ? 2 + (b - r) / s :
+                4 + (r - g) / s;
+    const a = 60 * h;
 
-    if (s !== 0)
-        switch (l) {
-            case r: h = (g - b) / s; break;
-            case g: h = (b - r) / s + 2; break;
-            case b: h = (r - g) / s + 4; break;
-        };
-
-    color[H] = 60 * h < 0 ? 60 * h + 360 : 60 * h;
+    color[H] = a < 0 ? a + 360 : a;
     color[S] = 100 * (s ? (l <= 0.5 ? s / (2 * l - s) : s / (2 - (2 * l - s))) : 0);
     color[L] = (100 * (2 * l - s)) / 2;
 
@@ -115,18 +112,16 @@ export function rgb(color: Color): void {
         // RGB already up-to-date
         return;
 
-    let h = color[H];
-    let l = color[L] / 100;
-    let s = (color[S] / 100) * Math.min(l, 1 - l);
+    const l = color[L] / 100;
+    const s = (color[S] / 100) * Math.min(l, 1 - l);
+    const r = color[H] / 30;
+    const rr = r % 12;
+    const rg = (r + 8) % 12;
+    const rb = (r + 4) % 12;
 
-    const f = (n: number) => {
-        n = (n + h / 30) % 12;
-        return 255 * (l - s * Math.max(-1, Math.min(n - 3, 9 - n, 1)));
-    };
-
-    color[R] = f(0);
-    color[G] = f(8);
-    color[B] = f(4);
+    color[R] = 255 * (l - s * Math.max(-1, Math.min(rr - 3, 9 - rr, 1)));
+    color[G] = 255 * (l - s * Math.max(-1, Math.min(rg - 3, 9 - rg, 1)));
+    color[B] = 255 * (l - s * Math.max(-1, Math.min(rb - 3, 9 - rb, 1)));
 
     color[MODEL] |= RGB;
 }
