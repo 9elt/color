@@ -158,9 +158,17 @@ export function lumaYUV(color: Color): number {
     return 0.299 * color[R] + 0.587 * color[G] + 0.114 * color[B];
 }
 
+/**
+ * checks if the color is dark (using Y'UV model)
+ */
+
 export function isDark(color: Color): boolean {
     return lumaYUV(color) < 128;
 }
+
+/**
+ * checks if the color is light (using Y'UV model)
+ */
 
 export function isLight(color: Color): boolean {
     return lumaYUV(color) >= 128;
@@ -213,6 +221,24 @@ export function fill(color: Color, background = new Color()): void {
     color[A] = 255;
 
     mix(color, background, stren);
+}
+
+/**
+ * whiten the color
+ * @param stren - 0 to 1
+ */
+
+export function whiten(color: Color, stren = 0.1): void {
+    mix(color, new Color(), stren);
+}
+
+/**
+ * blacken the color
+ * @param stren - 0 to 1
+ */
+
+export function blacken(color: Color, stren = 0.1): void {
+    mix(color, new Color(0, 0, 0), stren);
 }
 
 /**
