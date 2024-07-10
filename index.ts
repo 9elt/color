@@ -78,10 +78,11 @@ export class Color extends Uint16Array {
  */
 
 export function hsl(color: Color): void {
-    if (color[MODEL] & HSL)
+    if (color[MODEL] & HSL) {
 
         // HSL already up-to-date
         return;
+    }
 
     const r = color[R] / 255;
     const g = color[G] / 255;
@@ -107,10 +108,11 @@ export function hsl(color: Color): void {
  */
 
 export function rgb(color: Color): void {
-    if (color[MODEL] & RGB)
+    if (color[MODEL] & RGB) {
 
         // RGB already up-to-date
         return;
+    }
 
     const l = color[L] / 100;
     const s = (color[S] / 100) * Math.min(l, 1 - l);
@@ -178,89 +180,99 @@ export function isLight(color: Color): boolean {
  * convert the color to grayscale
  */
 
-export function grayscale(color: Color): void {
+export function grayscale(color: Color): Color {
     const gray = lumaYUV(color);
 
-    color[R] = gray;
-    color[G] = gray;
-    color[B] = gray;
-
-    color[MODEL] = RGB;
+    return new Color(
+        gray,
+        gray,
+        gray,
+        color[A]
+    );
 }
 
 /**
  * mix two colors
- * @param rstren - 0 to 1
+ * @param rstren - 0 to 1, default 0.5
  */
 
-export function mix(into: Color, from: Color, rstren = 0.5): void {
+export function mix(into: Color, from: Color, rstren = 0.5): Color {
     rgb(into);
     rgb(from);
 
     const lstren = 1 - rstren;
 
-    into[R] = into[R] * lstren + from[R] * rstren;
-    into[G] = into[G] * lstren + from[G] * rstren;
-    into[B] = into[B] * lstren + from[B] * rstren;
-    into[A] = into[A] * lstren + from[A] * rstren;
-
-    into[MODEL] = RGB;
+    return new Color(
+        into[R] * lstren + from[R] * rstren,
+        into[G] * lstren + from[G] * rstren,
+        into[B] * lstren + from[B] * rstren,
+        into[A] * lstren + from[A] * rstren
+    );
 }
 
 /**
  * fill the color transparency with a background color,
- * defaults to white
+ * default white
  */
 
-export function fill(color: Color, background = new Color()): void {
-    if (color[A] === 255)
-        return;
+export function fill(color: Color, background = new Color()): Color {
+    color = new Color(color);
+
+    if (color[A] === 255) {
+        return color;
+    }
 
     const stren = 1 - color[A] / 255;
 
     color[A] = 255;
 
-    mix(color, background, stren);
+    return mix(color, background, stren);
 }
 
 /**
  * whiten the color
- * @param stren - 0 to 1
+ * @param stren - 0 to 1, default 0.1
  */
 
-export function whiten(color: Color, stren = 0.1): void {
-    mix(color, new Color(), stren);
+export function whiten(color: Color, stren = 0.1): Color {
+    return mix(color, new Color(), stren);
 }
 
 /**
  * blacken the color
- * @param stren - 0 to 1
+ * @param stren - 0 to 1, default 0.1
  */
 
-export function blacken(color: Color, stren = 0.1): void {
-    mix(color, new Color(0, 0, 0), stren);
+export function blacken(color: Color, stren = 0.1): Color {
+    return mix(color, new Color(0, 0, 0), stren);
 }
 
 /**
  * set the color opacity
- * @param stren - 0 to 1
+ * @param stren - 0 to 1, default 1
  */
 
-export function opacity(color: Color, stren = 1): void {
+export function opacity(color: Color, stren = 1): Color {
+    color = new Color(color);
+
     color[A] = stren * 255;
+
+    return color;
 }
 
 /**
  * set the color hue
- * @param deg - 0 to 360
+ * @param deg - 0 to 360, default 360
  */
 
-export function hue(color: Color, deg = 360): void {
+export function hue(color: Color, deg = 360): Color {
     hsl(color);
+    color = new Color(color);
 
     color[H] = deg;
-
     color[MODEL] = HSL;
+
+    return color;
 }
 
 /**
@@ -268,106 +280,120 @@ export function hue(color: Color, deg = 360): void {
  * @param perc - 0 to 100
  */
 
-export function saturation(color: Color, perc = 100): void {
+export function saturation(color: Color, perc = 100): Color {
     hsl(color);
+    color = new Color(color);
 
     color[S] = perc;
-
     color[MODEL] = HSL;
+
+    return color;
 }
 
 /**
  * set the color lightness
- * @param perc - 0 to 100
+ * @param perc - 0 to 100, default 100
  */
 
-export function lightness(color: Color, perc = 100): void {
+export function lightness(color: Color, perc = 100): Color {
     hsl(color);
+    color = new Color(color);
 
     color[L] = perc;
-
     color[MODEL] = HSL;
+
+    return color;
 }
 
 /**
  * rotate the color hue
- * @param deg - -360 to 360
+ * @param deg - -360 to 360, default 180
  */
 
-export function rotate(color: Color, deg = 180): void {
+export function rotate(color: Color, deg = 180): Color {
     hsl(color);
+    color = new Color(color);
 
     (color[H] = (color[H] + deg) % 360) < 0 && (color[H] += 360);
-
     color[MODEL] = HSL;
+
+    return color;
 }
 
 /**
  * multiply the color saturation
- * @param stren - -1 to 1
+ * @param stren - -1 to 1, default 1
  */
 
-export function saturate(color: Color, stren = 1): void {
+export function saturate(color: Color, stren = 1): Color {
     hsl(color);
+    color = new Color(color);
 
     color[S] = Math.min(100, color[S] * stren);
-
     color[MODEL] = HSL;
+
+    return color;
 }
 
 /**
  * multiply the color lightness
- * @param stren - -1 to 1
+ * @param stren - -1 to 1, default 1
  */
 
-export function lighten(color: Color, stren = 1): void {
+export function lighten(color: Color, stren = 1): Color {
     hsl(color);
+    color = new Color(color);
 
     color[L] = Math.min(100, color[L] * (1 + stren));
-
     color[MODEL] = HSL;
+
+    return color;
 }
 
 /**
  * multiply the color lightness
- * @param stren - -1 to 1
+ * @param stren - -1 to 1, default 1
  */
 
-export function darken(color: Color, stren = 1): void {
+export function darken(color: Color, stren = 1): Color {
     hsl(color);
+    color = new Color(color);
 
     color[L] = Math.max(0, color[L] * (1 - stren));
-
     color[MODEL] = HSL;
+
+    return color;
 }
 
 /**
  * invert the color in RGB
  */
 
-export function invert(color: Color): void {
+export function invert(color: Color): Color {
     rgb(color);
 
-    color[R] = 255 - color[R];
-    color[G] = 255 - color[G];
-    color[B] = 255 - color[B];
-
-    color[MODEL] = RGB;
+    return new Color(
+        255 - color[R],
+        255 - color[G],
+        255 - color[B],
+        color[A]
+    );
 }
 
 /**
  * invert the color in HSL
  */
 
-export function invertHsl(color: Color): void {
+export function invertHsl(color: Color): Color {
     hsl(color);
+    color = new Color(color);
 
     color[H] = (color[H] + 180) % 360;
-
     color[S] = 100 - color[S];
     color[L] = 100 - color[L];
-
     color[MODEL] = HSL;
+
+    return color;
 }
 
 /**
@@ -424,11 +450,13 @@ export function eq(a: Color, b: Color): boolean {
  */
 
 export function fromString(color: string): Color {
-    if (color.startsWith('#'))
+    if (color.startsWith('#')) {
         return fromHex(color);
+    }
 
-    if (color.startsWith('rgb'))
+    if (color.startsWith('rgb')) {
         return fromRgb(color);
+    }
 
     throw new Error('Unsupported color string: ' + color);
 }
@@ -439,8 +467,9 @@ export function fromString(color: string): Color {
  */
 
 export function fromHex(hex: string): Color {
-    if (!/^#(([0-9a-f]{3,4})){1,2}$/i.test(hex))
+    if (!/^#(([0-9a-f]{3,4})){1,2}$/i.test(hex)) {
         throw new Error('Invalid hex color: ' + hex);
+    }
 
     return hex.length < 6
         ? new Color(
@@ -465,8 +494,9 @@ export function fromHex(hex: string): Color {
 export function fromRgb(rgba: string): Color {
     const match = rgba.match(/rgba?\((\d+),\s*(\d+),\s*(\d+),?\s*(\d*(?:\.\d+)?)?\)/);
 
-    if (!match)
+    if (!match) {
         throw new Error('Invalid rgba color: ' + rgba);
+    }
 
     return new Color(
         parseInt(match[1]),
